@@ -1,6 +1,6 @@
 #########################################
-##### Name:                         #####
-##### Uniqname:                     #####
+##### Name: Shao-Wen Chang          #####
+##### Uniqname: shaowenc            #####
 #########################################
 
 from requests_oauthlib import OAuth1
@@ -12,10 +12,10 @@ import hw6_secrets_starter as secrets # file that contains your OAuth credential
 CACHE_FILENAME = "twitter_cache.json"
 CACHE_DICT = {}
 
-client_key = secrets.TWITTER_API_KEY
-client_secret = secrets.TWITTER_API_SECRET
-access_token = secrets.TWITTER_ACCESS_TOKEN
-access_token_secret = secrets.TWITTER_ACCESS_TOKEN_SECRET
+client_key = "HSBWml3Sx7JeugkAJI0d0KFbt"
+client_secret = "XAVs00xAtJwvjk6YfpofoJpQQ3745PcoYDx1pS2Hk1zmEDiSFy"
+access_token = "1223327044207104000-dhoSkzM8uQZz4wEHXpH98JoDVZYw4S"
+access_token_secret = "Tuz6xADMMnfeaDHQb4ozhNMvrTrZlEnffjah9HgwIWWhb"
 
 oauth = OAuth1(client_key,
             client_secret=client_secret,
@@ -96,9 +96,15 @@ def construct_unique_key(baseurl, params):
     string
         the unique key as a string
     '''
-    #TODO Implement function
-    pass
 
+    #baseurl = "https://api.twitter.com/1.1/search/tweets.json"
+    #params = {"q":"#MarchMadness2021", "lang":"en", "since":"2021-01-01"}
+    baseurl_key1_value1 = baseurl
+
+    for x in params:
+        baseurl_key1_value1 = baseurl_key1_value1 + "?" + x + ":" + params[x]
+        
+    return baseurl_key1_value1
 
 def make_request(baseurl, params):
     '''Make a request to the Web API using the baseurl and params
@@ -116,8 +122,13 @@ def make_request(baseurl, params):
         the data returned from making the request in the form of 
         a dictionary
     '''
-    #TODO Implement function
-    pass
+
+    response = requests.get(baseurl, 
+                        params=params, 
+                        auth=oauth)
+
+    results = response.json()
+    return results
 
 
 def make_request_with_cache(baseurl, hashtag, count):
@@ -148,8 +159,13 @@ def make_request_with_cache(baseurl, hashtag, count):
         the results of the query as a dictionary loaded from cache
         JSON
     '''
-    #TODO Implement function
-    pass
+    params = {'q': hashtag, 'count': count}
+    response = requests.get(baseurl, 
+                        params=params, 
+                        auth=oauth)
+    
+    results = response.json()
+    return results
 
 
 def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
@@ -171,8 +187,47 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
         queried in make_request_with_cache()
 
     '''
-    # TODO: Implement function 
-    pass
+    statuslist = tweet_data['statuses']
+    Tweets = ''
+    for x in statuslist:
+        Tweets = Tweets + x['text']
+
+    Tweets_lower = Tweets.lower()
+
+    hashtag_to_ignore_lower = hashtag_to_ignore.lower()
+    #Tweets_lower.lstrip(hashtag_to_ignore_lower)
+    
+    punctuations = '''!()-[]{};:'"\,<>./?@$%^&*_~‘’''' # list of special characters you want to exclude
+    Tweets_lower_punc = ''
+    for char in Tweets_lower:
+        if char not in punctuations:
+            Tweets_lower_punc = Tweets_lower_punc + char
+    
+    #extract hashtag from string
+    hashtag_list = []
+    for word in Tweets_lower_punc.split():
+        if word[0] == '#':
+            hashtag_list.append(word)
+
+    counts = dict()
+    #words = Tweets_lower_punc.split()
+
+    word_counter = {}
+    for word in hashtag_list:
+        if word in word_counter:
+            word_counter[word] += 1
+        else:   
+            word_counter[word] = 1
+
+    popular_words = sorted(word_counter, key = word_counter.get, reverse = True)
+    top_2 = popular_words[:2]
+    most_common = top_2[1]
+
+    #print(counts_x)
+    return most_common
+
+
+        
     ''' Hint: In case you're confused about the hashtag_to_ignore 
     parameter, we want to ignore the hashtag we queried because it would 
     definitely be the most occurring hashtag, and we're trying to find 
@@ -191,7 +246,7 @@ if __name__ == "__main__":
         exit()
 
     CACHE_DICT = open_cache()
-
+    
     baseurl = "https://api.twitter.com/1.1/search/tweets.json"
     hashtag = "#MarchMadness2021"
     count = 100
