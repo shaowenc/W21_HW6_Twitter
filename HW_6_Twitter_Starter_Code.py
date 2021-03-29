@@ -7,15 +7,15 @@ from requests_oauthlib import OAuth1
 import json
 import requests
 
-import secrets as secrets # file that contains your OAuth credentials
+import hw6_secrets_starter as secrets # file that contains your OAuth credentials
 
 CACHE_FILENAME = "twitter_cache.json"
 CACHE_DICT = {}
 
-client_key = "HSBWml3Sx7JeugkAJI0d0KFbt"
-client_secret = "XAVs00xAtJwvjk6YfpofoJpQQ3745PcoYDx1pS2Hk1zmEDiSFy"
-access_token = "1223327044207104000-dhoSkzM8uQZz4wEHXpH98JoDVZYw4S"
-access_token_secret = "Tuz6xADMMnfeaDHQb4ozhNMvrTrZlEnffjah9HgwIWWhb"
+client_key = secrets.TWITTER_API_KEY
+client_secret = secrets.TWITTER_API_SECRET
+access_token = secrets.TWITTER_ACCESS_TOKEN
+access_token_secret = secrets.TWITTER_ACCESS_TOKEN_SECRET
 
 oauth = OAuth1(client_key,
             client_secret=client_secret,
@@ -96,15 +96,13 @@ def construct_unique_key(baseurl, params):
     string
         the unique key as a string
     '''
-
-    #baseurl = "https://api.twitter.com/1.1/search/tweets.json"
-    #params = {"q":"#MarchMadness2021", "lang":"en", "since":"2021-01-01"}
-    baseurl_key1_value1 = baseurl
-
-    for x in params:
-        baseurl_key1_value1 = baseurl_key1_value1 + "?" + x + ":" + params[x]
-        
-    return baseurl_key1_value1
+    param_strings = []
+    connector = '_'
+    for k in params.keys():
+        param_strings.append(f'{k}_{params[k]}')
+    param_strings.sort()
+    unique_key = baseurl + connector +  connector.join(param_strings)
+    return unique_key
 
 def make_request(baseurl, params):
     '''Make a request to the Web API using the baseurl and params
@@ -159,11 +157,22 @@ def make_request_with_cache(baseurl, hashtag, count):
         the results of the query as a dictionary loaded from cache
         JSON
     '''
+
     params = {'q': hashtag, 'count': count}
     response = requests.get(baseurl, 
                         params=params, 
                         auth=oauth)
     
+    request_key = construct_unique_key(baseurl, params)
+    if request_key in CACHE_DICT.keys():
+        print("fetching cached data")
+        return CACHE_DICT[request_key]
+    else:
+        print("making new request")
+        CACHE_DICT[request_key] = make_request(baseurl, params)
+        save_cache(CACHE_DICT)
+        return CACHE_DICT[request_key]
+
     results = response.json()
     return results
 
@@ -194,7 +203,7 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
 
     Tweets_lower = Tweets.lower()
 
-    hashtag_to_ignore_lower = hashtag_to_ignore.lower()
+    #hashtag_to_ignore_lower = hashtag_to_ignore.lower()
     #Tweets_lower.lstrip(hashtag_to_ignore_lower)
     
     punctuations = '''!()-[]{};:'"\,<>./?@$%^&*_~‘’''' # list of special characters you want to exclude
@@ -204,10 +213,14 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
             Tweets_lower_punc = Tweets_lower_punc + char
     
     #extract hashtag from string
-    hashtag_list = []
+    hashtag_list_0 = []
     for word in Tweets_lower_punc.split():
         if word[0] == '#':
-            hashtag_list.append(word)
+            hashtag_list_0.append(word)
+    
+    hashtag_list = []
+    for s in hashtag_list_0:
+        hashtag_list.append(s[1:])
 
     counts = dict()
     #words = Tweets_lower_punc.split()
@@ -223,7 +236,6 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
     top_2 = popular_words[:2]
     most_common = top_2[1]
 
-    #print(counts_x)
     return most_common
 
 
@@ -253,4 +265,5 @@ if __name__ == "__main__":
 
     tweet_data = make_request_with_cache(baseurl, hashtag, count)
     most_common_cooccurring_hashtag = find_most_common_cooccurring_hashtag(tweet_data, hashtag)
+    print(most_common_cooccurring_hashtag)
     print("The most commonly cooccurring hashtag with {} is {}.".format(hashtag, most_common_cooccurring_hashtag))
