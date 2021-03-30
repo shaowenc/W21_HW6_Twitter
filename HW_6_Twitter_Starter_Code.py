@@ -7,15 +7,15 @@ from requests_oauthlib import OAuth1
 import json
 import requests
 
-#import hw6_secrets_starter as secrets # file that contains your OAuth credentials
+import hw6_secrets_starter as secrets # file that contains your OAuth credentials
 
 CACHE_FILENAME = "twitter_cache.json"
 CACHE_DICT = {}
 
-client_key = "HSBWml3Sx7JeugkAJI0d0KFbt"
-client_secret = "XAVs00xAtJwvjk6YfpofoJpQQ3745PcoYDx1pS2Hk1zmEDiSFy"
-access_token = "1223327044207104000-dhoSkzM8uQZz4wEHXpH98JoDVZYw4S"
-access_token_secret = "Tuz6xADMMnfeaDHQb4ozhNMvrTrZlEnffjah9HgwIWWhb"
+client_key = secrets.TWITTER_API_KEY
+client_secret = secrets.TWITTER_API_SECRET
+access_token = secrets.TWITTER_ACCESS_TOKEN
+access_token_secret = secrets.TWITTER_ACCESS_TOKEN_SECRET
 
 oauth = OAuth1(client_key,
             client_secret=client_secret,
