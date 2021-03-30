@@ -17,6 +17,7 @@ client_secret = secrets.TWITTER_API_SECRET
 access_token = secrets.TWITTER_ACCESS_TOKEN
 access_token_secret = secrets.TWITTER_ACCESS_TOKEN_SECRET
 
+
 oauth = OAuth1(client_key,
             client_secret=client_secret,
             resource_owner_key=access_token,
@@ -172,10 +173,6 @@ def make_request_with_cache(baseurl, hashtag, count):
         CACHE_DICT[request_key] = make_request(baseurl, params)
         save_cache(CACHE_DICT)
         return CACHE_DICT[request_key]
-
-    results = response.json()
-    return results
-
 
 def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
     ''' Finds the hashtag that most commonly co-occurs with the hashtag
